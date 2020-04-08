@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+import { Divider } from 'antd';
 import Term from './app/term';
-import { ConfigProvider } from 'antd';
-import zhCN from 'antd/es/locale/zh_CN';
-import 'moment/locale/zh-cn'
+import Rest from './app/rest';
 
 function App() {
   return (
-    <ConfigProvider locale={zhCN}>
+    <Fragment>
       <Term />
-    </ConfigProvider>
+      <Divider />
+      <Rest />
+    </Fragment>
   );
 }
 
