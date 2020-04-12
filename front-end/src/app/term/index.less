@@ -1,7 +1,7 @@
 .g-term {
   display: flex;
   flex-direction: column;
-  padding: 50px 25px;
+  padding: 50px 25px 0 25px;
 
   .m-term {
     display: flex;
@@ -12,5 +12,31 @@
       margin-bottom: 10px;
     }
 
+  }
+
+  .m-row.column {
+    background-color: #fff;
+    height: 31.6px;
+    box-sizing: border-box;
+    border-radius: 2px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
+    border-right: 1px solid rgba(0, 0, 0, 0.2);
+    margin-bottom: 0;
+  
+    .m-date {
+      color: rgba(0, 0, 0, 0.65);
+      line-height: 31.6px;
+      padding-left: 12px;
+      margin-bottom: 0;
+    }
+
+    .anticon-edit {
+      margin-top: -21px;
+      margin-right: 10px;
+      align-self: flex-end;
+      font-size: 15px; 
+      color: rgba(0, 0, 0, 0.25);
+    }
   }
 }

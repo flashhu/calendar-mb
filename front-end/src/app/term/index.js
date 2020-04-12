@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { Button, Cascader, message, Spin } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import TermDialog from '../../component/termDialog';
-import 'antd/dist/antd.css';
-import '../../less/global.less';
+import moment from 'moment';
 import './index.less';
 import HttpUtil from '../../util/HttpUtil';
 import ApiUtil from '../../util/ApiUtil';
@@ -13,8 +12,8 @@ class Term extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currYear: '',
-      currTerm: '',
+      currentTerm: '',
+      editTerm: null,
       isAddTerm: false,
       loading: true,
       options: []
@@ -66,22 +65,54 @@ class Term extends Component {
   }
  
   //修改 新增学期
-  handleTermDialogClose = () => {
+  handleTermDialogClose = (term) => {
     this.getData();
-    console.log('add');
+    console.log('add:', term);
   }
 
   //点击添加学期
-  showTermDialog = () => {
-    // console.log('show term box');
+  showTermDialog = (term) => {
+    //console.log('show term box', term);
+    if(term === undefined) {
+      term = null;
+    }
     this.setState({
-      isAddTerm: true
+      isAddTerm: true,
+      editTerm: term
     })
   }
 
   //选择学期
   onChange = (value) => {
-    console.log('选择学期', value);
+    //console.log('选择学期', value[0], value[1]);
+    let select = {}
+    select['tyear'] = value[0];
+    select['torder'] = parseInt(value[1]);
+    let term = JSON.stringify(select);
+    let url = ApiUtil.API_GET_TERM_DATE + encodeURI(term);
+    this.setState({
+      loading: true
+    })
+    HttpUtil.get(url)
+      .then(
+        re => {
+          let term = re.term[0];
+          //2018-02-20T16:00:00.000Z 处理时区，转换
+          // console.log('get', moment(term.sdate).format("YYYY-MM-DD"));
+          term.sdate = moment(term.sdate).format("YYYY-MM-DD");
+          term.edate = moment(term.edate).format("YYYY-MM-DD");
+          this.setState({
+            currentTerm: term,
+            loading: false
+          })
+        }
+      ).catch (error => {
+      // message.error('数据被外星人劫持了...');
+        this.setState({
+          currentTerm: '',
+          loading: false
+        })
+    })
   }
 
   render() {
@@ -91,7 +122,7 @@ class Term extends Component {
           <div className="m-term">
             <div className="m-row">
               <span className="m-title">当前学期</span>
-              <Button type="primary" icon={<PlusOutlined />} size="small" className="m-btn" onClick={this.showTermDialog}></Button>
+              <Button type="primary" icon={<PlusOutlined />} size="small" className="m-btn" onClick={() => this.showTermDialog()}></Button>
             </div>
             <Cascader
               placeholder="请选择当前学期"
@@ -100,8 +131,15 @@ class Term extends Component {
               onChange={this.onChange}
             />
           </div>
+          {this.state.currentTerm &&
+            <div className="m-row column" onClick={() => this.showTermDialog(this.state.currentTerm)}>
+            <p className="m-date">{this.state.currentTerm.sdate} - {this.state.currentTerm.edate}</p>
+              <EditOutlined />
+            </div>
+          }
           <TermDialog 
             visible = {this.state.isAddTerm}
+            editTerm={this.state.editTerm}
             afterClose={() => this.setState({ isAddTerm: false })}
             onDialogConfirm={this.handleTermDialogClose}
           />

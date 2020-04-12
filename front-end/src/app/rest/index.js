@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import '../../less/global.less';
+// import '../../less/global.less';
 import './index.less';
 
 class Rest extends Component {
