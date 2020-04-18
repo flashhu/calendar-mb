@@ -1,4 +1,4 @@
-import calendarStore from './Calandar'
+import calendarStore from './Calendar'
 
 export default {
     calendarStore

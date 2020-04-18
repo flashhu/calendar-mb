@@ -2,9 +2,29 @@ const express = require('express');
 const Term = require('../module/term');
 const router = express.Router();
 
+const TERM_OPTION = [
+  { value: '1', label: '第一学期' },
+  { value: '2', label: '第二学期' }
+]
+
 router.get('/getAll', (req, res) => {
   Term.getTerm().then(results => {
-    res.json({ isSuccess: true, terms: results });
+    let options = [];
+    for (let i = 0; i < results.length; i++) {
+      let item = {};
+      item['value'] = results[i].tyear;
+      item['label'] = results[i].tyear + '学年';
+      item['children'] = [];
+      item['children'].push(TERM_OPTION[results[i].torder - 1]);
+      if (results[i].torder === 1) {
+        if (results[i].tyear === results[i + 1].tyear) {
+          item['children'].push(TERM_OPTION[results[i].torder]);
+          i++;
+        }
+      }
+      options.push(item);
+    }
+    res.json({ isSuccess: true, terms: results, options: options });
   }).catch(err => {
     console.log('router term get error:', err);
     res.json({ isSuccess: false, message: '数据被外星人劫持了...' });
@@ -53,4 +73,16 @@ router.get('/getTermDate/:term', (req, res) => {
   }) 
 })
 
-module.exports = router
+router.get('/delete/:id', (req, res) => {
+  let id = parseInt(req.params.id);
+  Term.deleteTerm(id).then(len => {
+    if (len === 1) {
+      res.json({ isSuccess: true, message: '学期已删除！' });
+    }
+  }).catch(err => {
+    console.log('router term delete date:', err);
+    res.json({ isSuccess: false, message: '删除失败，请重试...' });
+  })
+})
+
+module.exports = router;

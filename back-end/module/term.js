@@ -83,4 +83,20 @@ module.exports = class Term extends require('./model') {
             })
         })
     }
+
+    /**
+     * 删除某学期
+     * @param {int} id 
+     */
+    static deleteTerm(id) {
+        return new Promise((resolve, reject) => {
+            let sql = 'DELETE FROM term WHERE id = ?';
+            this.query(sql, id).then(results => {
+                resolve(results.affectedRows);
+            }).catch(err => {
+                console.log(`删除学期失败：${err.message}`);
+                reject(err);
+            })
+        })
+    }
 }

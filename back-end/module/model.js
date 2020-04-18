@@ -16,7 +16,11 @@ module.exports = class Model {
             host: '127.0.0.1',
             user: 'dbuser',
             password: '123456',
-            database: 'mc_calendar'
+            database: 'mc_calendar',
+            dateStrings: [
+                'DATE',
+                'DATETIME'
+            ]
         })
         Model.conn.connect(err => {
             if(err) {

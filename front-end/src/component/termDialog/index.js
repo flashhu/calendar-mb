@@ -1,17 +1,19 @@
-import React, { Component } from 'react';
-import { Modal, DatePicker, message } from 'antd';
-import moment from 'moment';
-import './index.less';
-import HttpUtil from '../../util/HttpUtil';
-import ApiUtil from '../../util/ApiUtil';
+import React, { Component } from 'react'
+import { Modal, DatePicker, message, Button } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons'
+import moment from 'moment'
+import './index.less'
+import HttpUtil from '../../util/HttpUtil'
+import ApiUtil from '../../util/ApiUtil'
+import msgret from '../../util/msgret'
 
 class TermDialog extends Component {
   constructor(props) {
     super(props);
     this.state = {
       term: {},
-      defsdate: '',
-      defedate: '',
+      dtpsdate: '',
+      dtpedate: '',
       visible: false,
       confirmLoading: false,
       deleteConfirm: false
@@ -27,19 +29,20 @@ class TermDialog extends Component {
       this.setState({
         visible: this.props.visible,
         term: {},
-        defsdate: '',
-        defedate: ''
+        dtpsdate: '',
+        dtpedate: ''
       })
     }
 
     //点击编辑 加后面条件是为防止无限循环
     if (this.props.editTerm && this.state.term.id !== this.props.editTerm.id) {
+      //深拷贝
+      let {...temp} = this.props.editTerm;
       this.setState({
-        visible: true,
-        term: this.props.editTerm,
+        term: temp,
         deleteConfirm: false,
-        defsdate: moment(this.props.editTerm.sdate, "YYYY-MM-DD"),
-        defedate: moment(this.props.editTerm.edate, "YYYY-MM-DD")
+        dtpsdate: moment(this.props.editTerm.sdate, "YYYY-MM-DD"),
+        dtpedate: moment(this.props.editTerm.edate, "YYYY-MM-DD")
       })
     }
   }
@@ -47,8 +50,31 @@ class TermDialog extends Component {
   handleCancel = (e) => {
     this.setState({
       visible: false,
-      
     })
+  }
+
+  handleDelete = () => {
+    if(this.state.deleteConfirm) {
+      console.log('delete');
+      HttpUtil.get(ApiUtil.API_DELETE_TERM + encodeURI(this.state.term.id))
+      .then(re => {
+        msgret(re.isSuccess, re.message);
+      }).catch(error =>{
+        message.error(error.message);
+      })
+      //不加会出现数据没有更新的情况 异步
+      setTimeout(() => {
+        this.setState({
+          deleteConfirm: false,
+          visible: false
+        });
+        this.props.onDialogConfirm(undefined);
+      }, 500);
+    }else {
+      this.setState({
+        deleteConfirm: true
+      })
+    }
   }
 
   handleOk = (e) => {
@@ -62,14 +88,9 @@ class TermDialog extends Component {
     HttpUtil.get(url)
       .then(
         re => {
-          if(re.isSuccess) {
-            message.success(re.message);
-          }else {
-            message.error(re.message);
-          }
+          msgret(re.isSuccess, re.message);
         }
       ).catch(error => {
-        console.log("here");
         message.error(error.message);
       })
     
@@ -79,15 +100,16 @@ class TermDialog extends Component {
         confirmLoading: false
       });
       this.props.onDialogConfirm(this.state.term);
-    }, 1000);
+    }, 500);
   }
 
   onChangeStart = (value, dateString) => {
-    //console.log('start date:', dateString);
+    console.log('start date:', value, dateString);
     let tmp = this.state.term;
     tmp.sdate = dateString;
     this.setState({
-      term: tmp
+      term: tmp,
+      dtpsdate: value
     })
     //添加学期，需要调用判断所属学年学期
     if (!this.props.editTerm) {
@@ -101,7 +123,8 @@ class TermDialog extends Component {
     let tmp = this.state.term;
     tmp.edate = dateString;
     this.setState({
-      term: tmp
+      term: tmp,
+      dtpedate: value
     })
     //添加学期，需要调用判断所属学年学期
     if(!this.props.editTerm) {
@@ -130,16 +153,15 @@ class TermDialog extends Component {
   }
 
   render() {
-    // DatePicker设置默认值 只会记住第一次输入的值 变不动...
-    // console.log(this.state.term, this.state.defsdate, this.state.defedate);
+    const { visible, confirmLoading, dtpsdate, dtpedate, term, deleteConfirm } = this.state;
 
     return(
       <Modal
         title="编辑学期"
-        visible={this.state.visible}
+        visible={visible}
         width={400}
         onOk={this.handleOk}
-        confirmLoading={this.state.confirmLoading}
+        confirmLoading={confirmLoading}
         onCancel={this.handleCancel}
         afterClose={this.props.afterClose}
         okText="保存"
@@ -147,25 +169,16 @@ class TermDialog extends Component {
       > 
         <div className="g-dialog">
           <div className="m-row">
-            {/* <DatePicker onChange={this.onChangeStart} bordered={false} placeholder="开始日期" defaultValue={this.state.defsdate} />
-            <DatePicker onChange={this.onChangeEnd} bordered={false} placeholder="结束日期" defaultValue={this.state.defedate} /> */}
-            {
-              this.state.defsdate &&
-              <div>
-              <DatePicker onChange={this.onChangeStart} bordered={false} placeholder="开始日期" defaultValue={this.state.defsdate} />
-              <DatePicker onChange={this.onChangeEnd} bordered={false} placeholder="结束日期" defaultValue={this.state.defedate} />
-              </div>
-            }
-            {
-              this.state.visible && !this.state.defedate &&
-              <div>
-              <DatePicker onChange={this.onChangeStart} bordered={false} placeholder="开始日期"/>
-              <DatePicker onChange={this.onChangeEnd} bordered={false} placeholder="结束日期"/>
-              </div>
-            }
+            <DatePicker onChange={this.onChangeStart} bordered={false} placeholder="开始日期" value={dtpsdate} />
+            <DatePicker onChange={this.onChangeEnd} bordered={false} placeholder="结束日期" value={dtpedate} />
           </div>
-          {this.state.term.tyear && this.state.term.torder &&
-            <p>系统将编辑<span>{this.state.term.tyear}学年第{this.state.term.torder}学期</span>。</p>
+          {term.tyear && term.torder &&
+            <p>系统将编辑<span>{term.tyear}学年第{term.torder}学期</span>。</p>
+          }
+          {term.id && 
+            <Button className="m-btn" type="primary" danger icon={<DeleteOutlined />} onClick={this.handleDelete}>
+            {deleteConfirm ? '请再次点击确认删除' : '删除'}
+            </Button>
           }
         </div>
       </Modal>

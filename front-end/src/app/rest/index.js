@@ -1,15 +1,20 @@
-import React, { Component } from 'react';
-import { Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-// import '../../less/global.less';
-import './index.less';
+import React, { Component } from 'react'
+import { inject, observer } from 'mobx-react'
+import { computed } from 'mobx'
+import { Button } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import './index.less'
 
+@inject('calendarStore')
+@observer
 class Rest extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currYear:''
-    };
+  // constructor(props) {
+  //   super(props);
+  // }
+
+  @computed
+  get currentTerm() {
+    return this.props.calendarStore.currentTerm;
   }
 
   render() {
@@ -17,7 +22,7 @@ class Rest extends Component {
       <div className = "g-rest">
         <div className="m-row">
           <span className="m-title">休假</span>
-          {this.state.currYear &&
+          {this.currentTerm &&
             <Button type="primary" icon={<PlusOutlined />} size="small" className="m-btn"></Button>
           }
         </div>

@@ -5,4 +5,5 @@ export default class ApiUtil {
   static API_GET_TERM = ApiUtil.URL_ROOT + '/term/getAll';
   static API_EDIT_TERM = ApiUtil.URL_ROOT + '/term/edit/';
   static API_GET_TERM_DATE = ApiUtil.URL_ROOT + '/term/getTermDate/';
+  static API_DELETE_TERM = ApiUtil.URL_ROOT + '/term/delete/'
 }
